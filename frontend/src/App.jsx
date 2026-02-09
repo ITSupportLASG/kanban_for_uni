@@ -1,50 +1,72 @@
 import { useEffect, useState } from "react";
 import { api } from "./api";
+import IssueModal from "./components/IssueModal";
 import "./App.css";
 
 function App() {
   const [boards, setBoards] = useState([]);
   const [selectedBoard, setSelectedBoard] = useState(null);
   const [columns, setColumns] = useState([]);
+
   const [taskTitle, setTaskTitle] = useState("");
   const [selectedColumn, setSelectedColumn] = useState("");
 
+  // ✅ Jira-like modal state
+  const [selectedIssueId, setSelectedIssueId] = useState(null);
+
+  const loadBoards = async () => {
+    const res = await api.get("/boards");
+    setBoards(res.data);
+    if (res.data.length > 0 && !selectedBoard) {
+      setSelectedBoard(res.data[0].id);
+    }
+  };
+
+  const loadColumns = async (boardId) => {
+    if (!boardId) return;
+    const res = await api.get(`/columns/by-board/${boardId}`);
+    setColumns(res.data);
+  };
+
   useEffect(() => {
-    api.get("/boards").then((res) => {
-      setBoards(res.data);
-      if (res.data.length > 0) {
-        setSelectedBoard(res.data[0].id);
-      }
-    });
+    loadBoards();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     if (selectedBoard) {
-      api.get(`/columns/by-board/${selectedBoard}`).then((res) => {
-        setColumns(res.data);
-      });
+      loadColumns(selectedBoard);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedBoard]);
 
   const addTask = async () => {
-    if (!taskTitle || !selectedColumn) return;
+    if (!taskTitle.trim()) {
+      alert("Please enter a task title");
+      return;
+    }
+    if (!selectedColumn) {
+      alert("Please select a column");
+      return;
+    }
 
     await api.post("/tasks", {
-      title: taskTitle,
-      column_id: selectedColumn,
+      title: taskTitle.trim(),
+      column_id: Number(selectedColumn),
       position: 1,
     });
 
-    const res = await api.get(`/columns/by-board/${selectedBoard}`);
-    setColumns(res.data);
+    await loadColumns(selectedBoard);
     setTaskTitle("");
+    setSelectedColumn(""); // ✅ reset so you remember to select again
   };
 
   return (
-    <div style={{ padding: 20 }}>
-      <h1>Kanban Board</h1>
+    <div className="appWrap">
+      <h1>Stepan's Kanban Board</h1>
 
       <select
+        className="select"
         value={selectedBoard || ""}
         onChange={(e) => setSelectedBoard(e.target.value)}
       >
@@ -55,46 +77,71 @@ function App() {
         ))}
       </select>
 
-      <div style={{ display: "flex", gap: 20, marginTop: 20 }}>
+      {/* ✅ Jira-style board */}
+      <div className="board">
         {columns.map((col) => (
-          <div
-            key={col.id}
-            style={{
-              border: "1px solid #ccc",
-              padding: 10,
-              width: 250,
-            }}
-          >
-            <h3>{col.title}</h3>
-            {col.tasks.map((task) => (
-              <div key={task.id} style={{ padding: 5 }}>
-                {task.title}
-              </div>
-            ))}
+          <div className="column" key={col.id}>
+            <div className="columnHeader">
+              <h3>{col.title}</h3>
+              <span className="count">{col.tasks.length}</span>
+            </div>
+
+            <div className="taskList">
+              {col.tasks.map((task) => (
+                <div
+                  key={task.id}
+                  className="taskCard"
+                  onClick={() => setSelectedIssueId(task.id)}
+                  title="Click to open Jira-style issue details"
+                >
+                  <div className="taskKey">
+                    {task.issue_key || `TASK-${task.id}`}
+                  </div>
+                  <div className="taskTitle">{task.title}</div>
+                </div>
+              ))}
+            </div>
           </div>
         ))}
       </div>
 
-      <h3>Add Task</h3>
-      <input
-        placeholder="Task title"
-        value={taskTitle}
-        onChange={(e) => setTaskTitle(e.target.value)}
+      {/* ✅ Jira-style add task */}
+      <div className="addTask">
+        <h3>Add Task</h3>
+
+        <div className="addRow">
+          <input
+            className="input"
+            placeholder="Task title"
+            value={taskTitle}
+            onChange={(e) => setTaskTitle(e.target.value)}
+          />
+
+          <select
+            className="select"
+            value={selectedColumn}
+            onChange={(e) => setSelectedColumn(e.target.value)}
+          >
+            <option value="">Select column</option>
+            {columns.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.title}
+              </option>
+            ))}
+          </select>
+
+          <button className="btn" onClick={addTask}>
+            Add
+          </button>
+        </div>
+      </div>
+
+      {/* ✅ Jira-like Issue Modal */}
+      <IssueModal
+        issueId={selectedIssueId}
+        onClose={() => setSelectedIssueId(null)}
+        onSaved={() => loadColumns(selectedBoard)} // refresh board after move/comment
       />
-
-      <select
-        value={selectedColumn}
-        onChange={(e) => setSelectedColumn(e.target.value)}
-      >
-        <option value="">Select column</option>
-        {columns.map((c) => (
-          <option key={c.id} value={c.id}>
-            {c.title}
-          </option>
-        ))}
-      </select>
-
-      <button onClick={addTask}>Add Task</button>
     </div>
   );
 }

@@ -1,28 +1,33 @@
 const router = require("express").Router();
 const pool = require("../db");
+const db = require("../db");
+
 
 // Create task
 router.post("/", async (req, res) => {
-  const { title, description, column_id, position } = req.body;
-
-  if (!title || !column_id || !position) {
-    return res
-      .status(400)
-      .json({ error: "title, column_id, position are required" });
-  }
-
   try {
-    const result = await pool.query(
-      "INSERT INTO tasks (title, description, column_id, position) VALUES ($1, $2, $3, $4) RETURNING *",
-      [title, description || null, column_id, position]
+    const { title, column_id, position } = req.body;
+
+    // default Jira status = "To Do"
+    const statusRes = await db.query(
+      "SELECT id FROM statuses WHERE name = 'To Do' LIMIT 1"
+    );
+    const todoStatusId = statusRes.rows[0]?.id || 1;
+
+    const result = await db.query(
+      `INSERT INTO tasks (title, column_id, position, status_id)
+       VALUES ($1, $2, $3, $4)
+       RETURNING *`,
+      [title, column_id, position, todoStatusId]
     );
 
-    res.status(201).json(result.rows[0]);
+    res.json(result.rows[0]);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Failed to create task" });
+    res.status(500).json({ error: "Server error" });
   }
 });
+
 
 // Move/update task (change column and/or position)
 router.put("/:id", async (req, res) => {
