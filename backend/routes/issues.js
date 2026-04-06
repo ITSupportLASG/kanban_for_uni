@@ -1,11 +1,11 @@
-const express = require("express");
+/*const express = require("express");
 const router = express.Router();
-const db = require("../db");
+const db = require("../db");*/
 
 /**
  * Get full issue details (Jira issue view)
  */
-router.get("/:id", async (req, res) => {
+/*router.get("/:id", async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -30,13 +30,13 @@ WHERE t.id = $1`,
     console.error(err);
     res.status(500).json({ error: "Server error" });
   }
-});
+});*/
 
 
 /**
  * Move issue (Jira workflow validation)
  */
-router.patch("/:id/move", async (req, res) => {
+/*router.patch("/:id/move", async (req, res) => {
   const { id } = req.params;
   const { toStatusId } = req.body;
 
@@ -107,13 +107,13 @@ router.patch("/:id/move", async (req, res) => {
     console.error(err);
     res.status(500).json({ error: "Server error" });
   }
-});
+});*/
 
 
 /**
  * Issue comments (Jira discussion)
  */
-router.get("/:id/comments", async (req, res) => {
+/*router.get("/:id/comments", async (req, res) => {
   const { id } = req.params;
 
   const comments = await db.query(
@@ -135,12 +135,12 @@ router.post("/:id/comments", async (req, res) => {
   );
 
   res.json({ success: true });
-});
+});*/
 
 /**
  * Issue history (audit log)
  */
-router.get("/:id/history", async (req, res) => {
+/*router.get("/:id/history", async (req, res) => {
   const { id } = req.params;
 
   const history = await db.query(
@@ -149,6 +149,73 @@ router.get("/:id/history", async (req, res) => {
   );
 
   res.json(history.rows);
+});
+
+module.exports = router;*/
+const express = require("express");
+const router = express.Router();
+const db = require("../db");
+
+/**
+ * Get full issue/task details
+ */
+router.get("/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const issue = await db.query(
+      `
+      SELECT 
+        t.*,
+        c.name AS column_name,
+        u.name AS assigned_user_name
+      FROM tasks t
+      LEFT JOIN columns c ON c.id = t.column_id
+      LEFT JOIN users u ON u.id = t.assigned_to
+      WHERE t.id = $1
+      `,
+      [id]
+    );
+
+    if (issue.rows.length === 0) {
+      return res.status(404).json({ error: "Issue not found" });
+    }
+
+    res.json(issue.rows[0]);
+  } catch (err) {
+    console.error("Get issue error:", err.message);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+/**
+ * Move issue/task to another column
+ */
+router.patch("/:id/move", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { column_id, position } = req.body;
+
+    const result = await db.query(
+      `
+      UPDATE tasks
+      SET column_id = COALESCE($1, column_id),
+          position = COALESCE($2, position)
+      WHERE id = $3
+      RETURNING *
+      `,
+      [column_id ?? null, position ?? null, id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Issue not found" });
+    }
+
+    res.json({ success: true, issue: result.rows[0] });
+  } catch (err) {
+    console.error("Move issue error:", err.message);
+    res.status(500).json({ error: "Server error" });
+  }
 });
 
 module.exports = router;
