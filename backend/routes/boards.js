@@ -15,7 +15,7 @@ router.get("/", async (req, res) => {
 });
 
 // 2) Create a board (+ create default columns)
-router.post("/", async (req, res) => {
+/*router.post("/", async (req, res) => {
   const { title, user_id } = req.body;
 
   if (!title || !user_id) {
@@ -47,4 +47,18 @@ router.post("/", async (req, res) => {
   }
 });
 
-module.exports = router;
+module.exports = router;*/
+router.post("/", (req, res) => {
+  const { name } = req.body;
+
+  db.run(
+    "INSERT INTO boards (name) VALUES (?)",
+    [name],
+    function (err) {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+      res.json({ id: this.lastID, name });
+    }
+  );
+});

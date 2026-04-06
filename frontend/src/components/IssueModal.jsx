@@ -125,7 +125,7 @@ export default function IssueModal({ issueId, onClose, onSaved }) {
                 <b>Priority:</b> {issue.priority || "MEDIUM"}
               </div>
               <div>
-                <b>Assignee:</b> {issue.assignee || "-"}
+                <b>Assignee:</b> {issue.assigned_user_name || "-"}
               </div>
               <div>
                 <b>Reporter:</b> {issue.reporter || "-"}

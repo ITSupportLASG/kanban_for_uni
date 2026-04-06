@@ -10,10 +10,14 @@ router.get("/:id", async (req, res) => {
     const { id } = req.params;
 
     const issue = await db.query(
-      `SELECT t.*, s.name AS status_name
-       FROM tasks t
-       LEFT JOIN statuses s ON s.id = t.status_id
-       WHERE t.id = $1`,
+      `SELECT 
+  t.*, 
+  s.name AS status_name,
+  u.name AS assigned_user_name
+FROM tasks t
+LEFT JOIN statuses s ON s.id = t.status_id
+LEFT JOIN users u ON t.assigned_to = u.id
+WHERE t.id = $1`,
       [id]
     );
 
@@ -70,7 +74,7 @@ router.patch("/:id/move", async (req, res) => {
     let columnTitle = null;
     if (statusName === "To Do") columnTitle = "To Do";
     else if (statusName === "In Progress") columnTitle = "In Progress";
-    else if (statusName === "Review") columnTitle = "In Progress"; // until you add a Review column
+    else if (statusName === "Review") columnTitle = "Review"; // until you add a Review column
     else if (statusName === "Done") columnTitle = "Done";
 
     let newColumnId = current.rows[0].column_id;

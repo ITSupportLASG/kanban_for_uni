@@ -1,5 +1,5 @@
 /* ===== Jira-like Dark Theme ===== */
-:root {
+/*:root {
   --bg: #0f1115;
   --panel: #151a22;
   --panel2: #11161d;
@@ -13,7 +13,7 @@
 }
 
 /* Reset the default Vite styles */
-#root {
+/*#root {
   max-width: none;
   margin: 0;
   padding: 0;
@@ -29,7 +29,7 @@ body {
 }
 
 /* ===== Main Layout ===== */
-.appWrap {
+/*.appWrap {
   max-width: 1100px;
   margin: 0 auto;
   padding: 24px 700px 60px;
@@ -43,7 +43,7 @@ h1 {
 }
 
 /* ===== Inputs / Selects / Buttons ===== */
-.input,
+/*.input,
 .select {
   width: 100%;
   border: 1px solid var(--border2);
@@ -74,7 +74,7 @@ h1 {
 }
 
 /* ===== Board ===== */
-.board {
+/*.board {
   margin-top: 22px;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -114,7 +114,7 @@ h1 {
 }
 
 /* ===== Task Cards ===== */
-.taskList {
+/*.taskList {
   display: grid;
   gap: 10px;
 }
@@ -148,7 +148,7 @@ h1 {
 }
 
 /* ===== Add Task Panel ===== */
-.addTask {
+/*.addTask {
   margin-top: 26px;
   padding: 16px;
   border: 1px solid var(--border);
@@ -168,7 +168,7 @@ h1 {
 }
 
 /* ===== Responsive ===== */
-@media (max-width: 980px) {
+/*@media (max-width: 980px) {
   h1 {
     font-size: 36px;
   }
@@ -177,5 +177,380 @@ h1 {
   }
   .addRow {
     grid-template-columns: 1fr;
+  }
+}
+
+/* ===== Jira-like Dark Theme ===== */
+:root {
+  --bg: #0f1115;
+  --panel: #151a22;
+  --panel2: #11161d;
+  --border: rgba(255, 255, 255, 0.1);
+  --border2: rgba(255, 255, 255, 0.16);
+  --text: rgba(255, 255, 255, 0.92);
+  --muted: rgba(255, 255, 255, 0.65);
+
+  --card: #f4f4f4;
+  --cardText: #121212;
+
+  --accent: #4d8dff;
+  --accentHover: #6ba4ff;
+  --shadow: 0 10px 35px rgba(0, 0, 0, 0.35);
+  --radius: 16px;
+}
+
+/* Reset the default Vite styles */
+#root {
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  text-align: left;
+}
+
+/* ===== Main Layout ===== */
+.appWrap {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 24px 24px 60px;
+}
+
+h1 {
+  text-align: center;
+  margin: 10px 0 22px;
+  font-size: clamp(2.4rem, 4vw, 4rem);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+/* ===== Inputs / Selects / Buttons ===== */
+.input,
+.select {
+  width: 100%;
+  border: 1px solid var(--border2);
+  background: rgba(0, 0, 0, 0.28);
+  color: var(--text);
+  padding: 12px 14px;
+  border-radius: 12px;
+  outline: none;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+}
+
+.input::placeholder {
+  color: rgba(255, 255, 255, 0.42);
+}
+
+.input:focus,
+.select:focus {
+  border-color: rgba(77, 141, 255, 0.8);
+  box-shadow: 0 0 0 3px rgba(77, 141, 255, 0.14);
+}
+
+.select {
+  cursor: pointer;
+}
+
+.btn {
+  border: 1px solid transparent;
+  background: linear-gradient(135deg, var(--accent), #3578f6);
+  color: white;
+  padding: 12px 16px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 700;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+  box-shadow: 0 10px 22px rgba(77, 141, 255, 0.22);
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 26px rgba(77, 141, 255, 0.3);
+  background: linear-gradient(135deg, var(--accentHover), var(--accent));
+}
+
+/* ===== Board ===== */
+.board {
+  margin-top: 22px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(240px, 1fr));
+  gap: 18px;
+  align-items: start;
+}
+
+.column {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.02));
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+  min-height: 520px;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(4px);
+}
+
+.columnHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.columnHeader h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.count {
+  font-size: 12px;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  padding: 2px 8px;
+  border-radius: 999px;
+  min-width: 28px;
+  text-align: center;
+}
+
+/* ===== Task Cards ===== */
+.taskList {
+  display: grid;
+  gap: 12px;
+}
+
+.taskCard {
+  background: var(--card);
+  color: var(--cardText);
+  border-radius: 14px;
+  padding: 12px 14px;
+  cursor: pointer;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.16);
+}
+
+.taskCard:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 26px rgba(0, 0, 0, 0.22);
+}
+
+.taskKey {
+  font-size: 12px;
+  font-weight: 900;
+  opacity: 0.7;
+  margin-bottom: 5px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+.taskTitle {
+  font-size: 15px;
+  font-weight: 800;
+  margin-bottom: 6px;
+}
+
+.taskCard p,
+.taskCard span,
+.taskCard div {
+  color: #111827;
+}
+
+/* ===== Add Task Panel ===== */
+.addTask {
+  margin-top: 28px;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.02));
+  box-shadow: var(--shadow);
+}
+
+.addTask h3 {
+  margin: 0 0 14px 0;
+  text-align: center;
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.addRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 220px 140px auto;
+  gap: 12px;
+  align-items: center;
+}
+
+/* ===== Modal ===== */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(3, 6, 15, 0.72);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 9999;
+}
+
+.modal {
+  width: min(920px, 100%);
+  background: linear-gradient(180deg, #0f1522 0%, #090d16 100%);
+  color: #fff;
+  border: 1px solid var(--border2);
+  border-radius: 18px;
+  padding: 22px;
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.36);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 8px;
+}
+
+.modal-header button {
+  background: transparent;
+  border: 1px solid var(--border2);
+  color: #fff;
+  border-radius: 10px;
+  padding: 6px 11px;
+  cursor: pointer;
+  box-shadow: none;
+}
+
+.modal-header button:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.modal-meta {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 18px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.tabs button {
+  border: 1px solid var(--border2);
+  background: transparent;
+  color: #fff;
+  padding: 9px 14px;
+  border-radius: 12px;
+  cursor: pointer;
+  box-shadow: none;
+}
+
+.tabs button:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.tabs button.active {
+  background: rgba(77, 141, 255, 0.14);
+  border-color: rgba(77, 141, 255, 0.55);
+}
+
+.tab-content {
+  margin-top: 18px;
+}
+
+.comment-list {
+  display: grid;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.comment {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.comment-box {
+  margin-top: 14px;
+  display: grid;
+  gap: 10px;
+}
+
+.comment-box input,
+.comment-box textarea,
+.comment-box select {
+  width: 100%;
+  background: #0b1120;
+  color: #fff;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+
+.comment-box textarea {
+  min-height: 110px;
+  resize: vertical;
+}
+
+.comment-box button {
+  width: fit-content;
+}
+
+.history {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 12px 14px;
+  margin-top: 12px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 1200px) {
+  .board {
+    grid-template-columns: repeat(2, minmax(240px, 1fr));
+  }
+}
+
+@media (max-width: 980px) {
+  h1 {
+    font-size: 36px;
+  }
+
+  .board {
+    grid-template-columns: 1fr;
+  }
+
+  .addRow {
+    grid-template-columns: 1fr;
+  }
+
+  .modal-meta {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .appWrap {
+    padding: 18px 14px 40px;
+  }
+
+  h1 {
+    text-align: left;
+    font-size: 30px;
+  }
+
+  .modal {
+    padding: 16px;
   }
 }

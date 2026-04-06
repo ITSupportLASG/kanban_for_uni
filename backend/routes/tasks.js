@@ -6,7 +6,7 @@ const db = require("../db");
 // Create task
 router.post("/", async (req, res) => {
   try {
-    const { title, column_id, position } = req.body;
+    const { title, column_id, position, assigned_to } = req.body;
 
     // default Jira status = "To Do"
     const statusRes = await db.query(
@@ -15,10 +15,10 @@ router.post("/", async (req, res) => {
     const todoStatusId = statusRes.rows[0]?.id || 1;
 
     const result = await db.query(
-      `INSERT INTO tasks (title, column_id, position, status_id)
-       VALUES ($1, $2, $3, $4)
-       RETURNING *`,
-      [title, column_id, position, todoStatusId]
+      `INSERT INTO tasks (title, column_id, position, status_id, assigned_to)
+   VALUES ($1, $2, $3, $4, $5)
+   RETURNING *`,
+      [title, column_id, position, todoStatusId, assigned_to || null]
     );
 
     res.json(result.rows[0]);
