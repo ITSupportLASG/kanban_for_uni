@@ -2,11 +2,12 @@ import { useEffect, useState } from "react";
 
 const API = import.meta.env.VITE_API_URL;
 
-export default function IssueModal({ issueId, onClose, onSaved }) {
+export default function IssueModal({ issueId, columns, onClose, onSaved }) {
   const [issue, setIssue] = useState(null);
   const [comments, setComments] = useState([]);
   const [history, setHistory] = useState([]);
   const [activeTab, setActiveTab] = useState("details");
+  const [assignedTo, setAssignedTo] = useState("");
 
   const [newComment, setNewComment] = useState("");
   const [author, setAuthor] = useState("Student");
@@ -25,6 +26,7 @@ export default function IssueModal({ issueId, onClose, onSaved }) {
     if (!API) {
       alert("VITE_API_URL is not set. Add it in frontend/.env and restart frontend.");
       return;
+      setAssignedTo(issue.assigned_to || "");
     }
 
     // Issue details
@@ -59,7 +61,7 @@ export default function IssueModal({ issueId, onClose, onSaved }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [issueId]);
 
-  async function addComment() {
+  /*async function addComment() {
     if (!newComment.trim()) return;
 
     const res = await fetch(`${API}/issues/${issueId}/comments`, {
@@ -76,9 +78,50 @@ export default function IssueModal({ issueId, onClose, onSaved }) {
 
     setNewComment("");
     await loadAll();
+  }*/
+  async function addComment() {
+    if (!newComment.trim()) return;
+
+    const res = await fetch(`${API}/issues/${issueId}/comments`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        author,
+        content: newComment,
+      }),
+    });
+
+    const data = await safeJson(res);
+    if (!res.ok) {
+      alert(data?.error || "Failed to add comment");
+      return;
+    }
+
+    setNewComment("");
+    await loadAll();
   }
 
-  async function moveIssue() {
+  async function assignUser() {
+    const res = await fetch(`${API}/tasks/${issueId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        assigned_to: assignedTo ? Number(assignedTo) : null,
+      }),
+    });
+
+    const data = await safeJson(res);
+
+    if (!res.ok) {
+      alert(data?.error || "Failed to assign user");
+      return;
+    }
+
+    await loadAll();
+    onSaved?.();
+  }
+
+  /*async function moveIssue() {
     if (!toStatusId) return;
 
     const res = await fetch(`${API}/issues/${issueId}/move`, {
@@ -91,6 +134,28 @@ export default function IssueModal({ issueId, onClose, onSaved }) {
 
     if (!res.ok) {
       alert(data?.error || "Move failed (transition not allowed)");
+      return;
+    }
+
+    await loadAll();
+    onSaved?.();
+  }*/
+  async function moveIssue() {
+    if (!toStatusId) return;
+
+    const res = await fetch(`${API}/issues/${issueId}/move`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        column_id: Number(toStatusId),
+        position: 0,
+      }),
+    });
+
+    const data = await safeJson(res);
+
+    if (!res.ok) {
+      alert(data?.error || "Move failed");
       return;
     }
 
@@ -124,8 +189,22 @@ export default function IssueModal({ issueId, onClose, onSaved }) {
               <div>
                 <b>Priority:</b> {issue.priority || "MEDIUM"}
               </div>
-              <div>
-                <b>Assignee:</b> {issue.assigned_user_name || "-"}
+              <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+                <span><b>Assignee:</b></span>
+
+                <select
+                  value={assignedTo || ""}
+                  onChange={(e) => setAssignedTo(e.target.value)}
+                >
+                  <option value="">Unassigned</option>
+                  {users?.map((u) => (
+                    <option key={u.id} value={u.id}>
+                      {u.name}
+                    </option>
+                  ))}
+                </select>
+
+                <button onClick={assignUser}>Save</button>
               </div>
               <div>
                 <b>Reporter:</b> {issue.reporter || "-"}
@@ -172,10 +251,11 @@ export default function IssueModal({ issueId, onClose, onSaved }) {
                       onChange={(e) => setToStatusId(e.target.value)}
                     >
                       <option value="">Select new status...</option>
-                      <option value="1">To Do</option>
-                      <option value="2">In Progress</option>
-                      <option value="3">Review</option>
-                      <option value="4">Done</option>
+                      {columns?.map((col) => (
+                        <option key={col.id} value={col.id}>
+                          {col.name}
+                        </option>
+                      ))}
                     </select>
 
                     <button onClick={moveIssue}>Move</button>
@@ -235,23 +315,22 @@ export default function IssueModal({ issueId, onClose, onSaved }) {
               <div className="tab-content">
                 <h3>History (Audit log)</h3>
 
-                {history.map((h) => (
-                  <div className="history" key={h.id}>
+                {history.length === 0 && (
+                  <div style={{ opacity: 0.85 }}>No changes yet.</div>
+                )}
+
+                {history.map((item) => (
+                  <div className="history" key={item.id}>
                     <div>
-                      <b>{h.field}</b>: {h.old_value ?? "-"} →{" "}
-                      {h.new_value ?? "-"}
+                      <b>{item.action}</b>
                     </div>
                     <div style={{ opacity: 0.7 }}>
-                      {h.changed_at
-                        ? new Date(h.changed_at).toLocaleString()
+                      {item.created_at
+                        ? new Date(item.created_at).toLocaleString()
                         : ""}
                     </div>
                   </div>
                 ))}
-
-                {history.length === 0 && (
-                  <div style={{ opacity: 0.85 }}>No changes yet.</div>
-                )}
               </div>
             )}
           </>

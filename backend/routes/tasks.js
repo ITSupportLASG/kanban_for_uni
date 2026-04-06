@@ -152,5 +152,26 @@ router.delete("/:id", async (req, res) => {
     res.status(500).json({ error: "Failed to delete task" });
   }
 });
+router.patch("/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { assigned_to } = req.body;
+
+    const result = await db.query(
+      `
+      UPDATE tasks
+      SET assigned_to = $1
+      WHERE id = $2
+      RETURNING *
+      `,
+      [assigned_to ?? null, id]
+    );
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error("Update task error:", err.message);
+    res.status(500).json({ error: "Server error" });
+  }
+});
 
 module.exports = router;

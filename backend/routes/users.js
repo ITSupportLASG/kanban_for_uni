@@ -34,5 +34,29 @@ router.get("/", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch users" });
   }
 });
+// Add new user
+router.post("/", async (req, res) => {
+  try {
+    const { name, email } = req.body;
+
+    if (!name || !name.trim()) {
+      return res.status(400).json({ error: "Name is required" });
+    }
+
+    const result = await db.query(
+      `
+      INSERT INTO users (name, email)
+      VALUES ($1, $2)
+      RETURNING *
+      `,
+      [name.trim(), email?.trim() || null]
+    );
+
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    console.error("Add user error:", err.message);
+    res.status(500).json({ error: "Server error" });
+  }
+});
 
 module.exports = router;

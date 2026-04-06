@@ -22,7 +22,7 @@ function App() {
   };*/
   const loadUsers = async () => {
     try {
-      const res = await api.get("api/users");
+      const res = await api.get("/api/users");
       console.log("USERS:", res.data);
       setUsers(res.data);
     } catch (err) {
@@ -172,8 +172,9 @@ function App() {
       {/* ✅ Jira-like Issue Modal */}
       <IssueModal
         issueId={selectedIssueId}
+        columns={columns}
         onClose={() => setSelectedIssueId(null)}
-        onSaved={() => loadColumns(selectedBoard)} // refresh board after move/comment
+        onSaved={() => loadColumns(selectedBoard)}// refresh board after move/comment
       />
     </div>
   );
