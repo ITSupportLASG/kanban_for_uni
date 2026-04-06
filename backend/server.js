@@ -118,6 +118,24 @@ async function initDb() {
         assigned_to INTEGER REFERENCES users(id) ON DELETE SET NULL
       )
     `);
+    await db.query(`
+  CREATE TABLE IF NOT EXISTS issue_comments (
+    id SERIAL PRIMARY KEY,
+    issue_id INTEGER REFERENCES tasks(id) ON DELETE CASCADE,
+    author TEXT,
+    content TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  )
+`);
+
+    await db.query(`
+  CREATE TABLE IF NOT EXISTS issue_history (
+    id SERIAL PRIMARY KEY,
+    issue_id INTEGER REFERENCES tasks(id) ON DELETE CASCADE,
+    action TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  )
+`);
 
     console.log("PostgreSQL tables ready");
 

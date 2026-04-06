@@ -152,6 +152,74 @@ router.post("/:id/comments", async (req, res) => {
 });
 
 module.exports = router;*/
+/*const express = require("express");
+const router = express.Router();
+const db = require("../db");*/
+
+/**
+ * Get full issue/task details
+ */
+/*router.get("/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const issue = await db.query(
+      `
+      SELECT 
+        t.*,
+        c.name AS column_name,
+        u.name AS assigned_user_name
+      FROM tasks t
+      LEFT JOIN columns c ON c.id = t.column_id
+      LEFT JOIN users u ON u.id = t.assigned_to
+      WHERE t.id = $1
+      `,
+      [id]
+    );
+
+    if (issue.rows.length === 0) {
+      return res.status(404).json({ error: "Issue not found" });
+    }
+
+    res.json(issue.rows[0]);
+  } catch (err) {
+    console.error("Get issue error:", err.message);
+    res.status(500).json({ error: "Server error" });
+  }
+});*/
+
+/**
+ * Move issue/task to another column
+ */
+/*router.patch("/:id/move", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { column_id, position } = req.body;
+
+    const result = await db.query(
+      `
+      UPDATE tasks
+      SET column_id = COALESCE($1, column_id),
+          position = COALESCE($2, position)
+      WHERE id = $3
+      RETURNING *
+      `,
+      [column_id ?? null, position ?? null, id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Issue not found" });
+    }
+
+    res.json({ success: true, issue: result.rows[0] });
+  } catch (err) {
+    console.error("Move issue error:", err.message);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+module.exports = router;*/
+
 const express = require("express");
 const router = express.Router();
 const db = require("../db");
@@ -189,12 +257,131 @@ router.get("/:id", async (req, res) => {
 });
 
 /**
+ * Get comments for one issue/task
+ */
+router.get("/:id/comments", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const result = await db.query(
+      `
+      SELECT *
+      FROM issue_comments
+      WHERE issue_id = $1
+      ORDER BY created_at ASC
+      `,
+      [id]
+    );
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error("Get comments error:", err.message);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+/**
+ * Add comment to issue/task
+ */
+router.post("/:id/comments", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { author, content } = req.body;
+
+    if (!content || !content.trim()) {
+      return res.status(400).json({ error: "Comment content is required" });
+    }
+
+    const result = await db.query(
+      `
+      INSERT INTO issue_comments (issue_id, author, content)
+      VALUES ($1, $2, $3)
+      RETURNING *
+      `,
+      [id, author || "Unknown", content.trim()]
+    );
+
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    console.error("Add comment error:", err.message);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+/**
+ * Get history for one issue/task
+ */
+router.get("/:id/history", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const result = await db.query(
+      `
+      SELECT *
+      FROM issue_history
+      WHERE issue_id = $1
+      ORDER BY created_at DESC
+      `,
+      [id]
+    );
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error("Get history error:", err.message);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+/**
+ * Add history item manually
+ */
+router.post("/:id/history", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { action } = req.body;
+
+    if (!action || !action.trim()) {
+      return res.status(400).json({ error: "History action is required" });
+    }
+
+    const result = await db.query(
+      `
+      INSERT INTO issue_history (issue_id, action)
+      VALUES ($1, $2)
+      RETURNING *
+      `,
+      [id, action.trim()]
+    );
+
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    console.error("Add history error:", err.message);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+/**
  * Move issue/task to another column
  */
 router.patch("/:id/move", async (req, res) => {
   try {
     const { id } = req.params;
     const { column_id, position } = req.body;
+
+    const currentTask = await db.query(
+      `
+      SELECT *
+      FROM tasks
+      WHERE id = $1
+      `,
+      [id]
+    );
+
+    if (currentTask.rows.length === 0) {
+      return res.status(404).json({ error: "Issue not found" });
+    }
+
+    const oldColumnId = currentTask.rows[0].column_id;
 
     const result = await db.query(
       `
@@ -207,11 +394,19 @@ router.patch("/:id/move", async (req, res) => {
       [column_id ?? null, position ?? null, id]
     );
 
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: "Issue not found" });
+    const updatedTask = result.rows[0];
+
+    if (column_id && Number(column_id) !== Number(oldColumnId)) {
+      await db.query(
+        `
+        INSERT INTO issue_history (issue_id, action)
+        VALUES ($1, $2)
+        `,
+        [id, `Moved from column ${oldColumnId} to column ${column_id}`]
+      );
     }
 
-    res.json({ success: true, issue: result.rows[0] });
+    res.json({ success: true, issue: updatedTask });
   } catch (err) {
     console.error("Move issue error:", err.message);
     res.status(500).json({ error: "Server error" });

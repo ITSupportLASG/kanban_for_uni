@@ -90,7 +90,7 @@ function App() {
       >
         {boards.map((b) => (
           <option key={b.id} value={b.id}>
-            {b.title}
+            {b.name}
           </option>
         ))}
       </select>
@@ -100,7 +100,7 @@ function App() {
         {columns.map((col) => (
           <div className="column" key={col.id}>
             <div className="columnHeader">
-              <h3>{col.title}</h3>
+              <h3>{col.name}</h3>
               <span className="count">{col.tasks.length}</span>
             </div>
 
@@ -146,7 +146,7 @@ function App() {
             <option value="">Select column</option>
             {columns.map((c) => (
               <option key={c.id} value={c.id}>
-                {c.title}
+                {c.name}
               </option>
             ))}
           </select>
